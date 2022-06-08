@@ -4,11 +4,14 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/stunndard/goicy/config"
-	"github.com/stunndard/goicy/logger"
 	"net"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/stunndard/goicy/config"
+	"github.com/stunndard/goicy/logger"
+	"i2pgit.org/idk/dialeverything"
 )
 
 var Connected bool = false
@@ -16,11 +19,19 @@ var csock net.Conn
 
 func Connect(host string, port int) (net.Conn, error) {
 	h := host + ":" + strconv.Itoa(int(port))
+	if strings.HasSuffix(host, ".i2p") || strings.HasSuffix(host, ".onion") {
+		sock, err := dialeverything.Dial("tcp", h)
+		if err != nil {
+			Connected = false
+		}
+		return sock, err
+	}
 	sock, err := net.Dial("tcp", h)
 	if err != nil {
 		Connected = false
 	}
 	return sock, err
+
 }
 
 func Send(sock net.Conn, buf []byte) error {
